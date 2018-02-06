@@ -1,0 +1,63 @@
+日志查看：
+kube logs <podID>
+
+项目发布：
+make flow=all ns=aurajike name=data-delivery env=dev ver=v2.0
+
+
+查看容器配置：
+kube exec -ti <podID> -- cat config.jsonlocalhost:8080/api/v1/orderList
+
+查看容器日志：
+
+kube exec <podID> -- tail -f //data/logs/maizuo.log
+
+查看pod运行的node:
+kube get po -o wide
+
+进入容器进行操作：
+kube -n <namespace> exec -ti  <podID> sh
+
+
+修改k8s的deploy配置：
+kube edit deploy/business-product -n <namespace> 
+
+查看节点详情：
+kube describe node 192.168.1.218
+
+切换context（切换线上、测试环境）：
+ kube config use-context vpc
+ kube config use-context dev
+
+
+查看kibana日志收集：
+（收集不到愿意：1,、查看elk的pod可知是否日志格式有误解析出错；2、json配置文件是否确认讲日志写入maizuo.log；3、目标物理机节点是否能够正常收集日志）
+1、kube get po 查看运行的pod
+2、kube describe po <podID>  查看运行的物理机节点（需要确认该节点是否能够正常收集日志）
+3、kube describe node <nodeId>  查看elk日志收集进程
+
+
+kube 重新发布节点：
+kube delete -f ./k8s/dep.yaml
+kube apply -f ./k8s/dep.yaml
+
+
+本地运行docker：
+ADD ./build/config.json /data-product/build/config.json
+
+指定节点发布pod：
+在dep.yaml的spec后加上
+nodeName: 192.168.1.219
+并调用kube apply -f ./k8s/dep.yaml
+
+强行删除节点：
+kube delete po data-delivery-1551916004-tkh55 --grace-period=0 --force
+
+
+curl -l -H "Content-type: application/json" -X POST -d '{"productList":[{"productId":40,"attrTypeId":10}]}' business-product.aurayou/api/v1/1/product/queryMultiProductAttrListByAttrTypeId
+
+修改dep节点数量：
+kube scale --replicas=1 deploy/business-public
+
+
+
